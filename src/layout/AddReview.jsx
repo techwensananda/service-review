@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import Header from '../components/Header'
 import { Link } from 'react-router-dom';
 import { Nav, Tab, } from 'react-bootstrap';
@@ -7,43 +7,64 @@ import { CircularProgressbar } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 import ProgressBar from 'react-bootstrap/ProgressBar'
 import Footer from '../components/Footer';
-
+import { AuthContext } from '../context/authProvider/AuthProvider';
+import axios from 'axios';
+import swal from 'sweetalert';
 const aboutbg = require('./../assets/images/background/image-11.jpg');
 const helpbg = require('./../assets/images/background/image-18.jpg');
 
 const AddReview = () => {
+
+    const { user } = useContext(AuthContext);
+    const [reviewAll, setReviewAll] = useState([])
+
+    useEffect(() => {
+        getreviewss()
+    }, [user])
+    const getreviewss = async () => {
+
+        axios.get(`http://localhost:7000/api/v1/review/myreview/${user?.email}`,)
+            .then(res => {
+                setReviewAll(res.data?.review)
+
+                console.log(res)
+
+            }).catch(err => {
+
+            })
+    }
+
+    const handleDelete = (id) => {
+        swal({
+            title: "Are you sure?",
+            text: "Are you sure that you want to leave this page?",
+            icon: "warning",
+            dangerMode: true,
+        })
+            .then(willDelete => {
+                if (willDelete) {
+                    axios.delete(`http://localhost:7000/api/v1/review/reviews/${id}`,)
+                        .then(res => {
+                            getreviewss()
+
+
+                            swal("Deleted!", "Your imaginary file has been deleted!", "success");
+
+                        }).catch(err => {
+
+                        })
+
+                }
+            });
+
+
+    }
+
     return (
         <>
             <Header />
 
 
-            {/* <!--Search Popup--> */}
-            <div id="search-popup" class="search-popup">
-                <div class="close-search theme-btn"><span class="flaticon-cancel"></span></div>
-                <div class="popup-inner">
-                    <div class="overlay-layer"></div>
-                    <div class="search-form">
-                        <form method="post" action="http://azim.commonsupport.com/Finandox/index.html">
-                            <div class="form-group">
-                                <fieldset>
-                                    <input type="search" class="form-control" name="search-input" value="" placeholder="Search Here" required />
-                                    <input type="submit" value="Search Now!" class="theme-btn" />
-                                </fieldset>
-                            </div>
-                        </form>
-                        <br />
-                        <h3>Recent Search Keywords</h3>
-                        <ul class="recent-searches">
-                            <li><Link to={'/#'}>Finance</Link></li>
-                            <li><Link to={'/#'}>Idea</Link></li>
-                            <li><Link to={'/#'}>Service</Link></li>
-                            <li><Link to={'/#'}>Growth</Link></li>
-                            <li><Link to={'/#'}>Plan</Link></li>
-                        </ul>
-                    </div>
-
-                </div>
-            </div>
 
             {/* <!-- Page Banner Section --> */}
             <section class="page-banner">
@@ -66,16 +87,16 @@ const AddReview = () => {
                     <div class="row">
                         <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12">
                             <ul class="total-item-info">
-                                <li><span>Your Reviews:</span> 3 Items</li>
-                              
+                                <li><span>Your Reviews:</span> {reviewAll.length} Items</li>
+
                             </ul>
                             <div class="table-outer">
                                 <table class="cart-table">
                                     <thead class="cart-header">
                                         <tr>
-                                            
+
                                             <th class="prod-column">Picture</th>
-                                         
+
                                             <th>Name</th>
                                             <th class="availability">Rating</th>
                                             <th class="price">Description</th>
@@ -84,41 +105,56 @@ const AddReview = () => {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr>
-                                           
-                                            <td  class="prod-column">
-                                                <div class="column-box">
-                                                    <div class="prod-thumb">
-                                                        <Link to={'/#'}><img src={require('../assets/images/shop/1.jpg')} alt="" /></Link>
-                                                    </div>
-                                              
-                                                </div>
-                                            </td>
-                                            <td>
-                                              
-                                                    <h5 class="prod-title">Power Remote</h5>
-                                               
-                                            </td>
-                                            <td>
-                                                5
-                                            </td>
-                                            <td>
-                                                <p> Cras ultricies ligula sed magna dictum porta. Praesent sapien massa, convallis a pellentesque nec, egestas non nisi. Vivamus suscipit tortor</p> 
-                                            </td>
-                                            <td>
-                                                22/08/2022
-                                            </td>
-                                           
-                                           
-                                        </tr>
-                                    
+
+                                        {
+                                            reviewAll.map(revi =>
+
+
+                                            (
+
+                                                <tr>
+
+                                                    <td class="prod-column">
+                                                        <div class="column-box">
+                                                            <div class="prod-thumb">
+                                                                <Link to={'/#'}><img src={revi?.servicepicture} alt="" /></Link>
+                                                            </div>
+
+                                                        </div>
+                                                    </td>
+                                                    <td>
+
+                                                        <h5 class="prod-title">{revi?.servicename}</h5>
+
+                                                    </td>
+                                                    <td>
+                                                        {revi?.ratings}
+                                                    </td>
+                                                    <td>
+                                                        <p> {revi?.description.slice(0, 12)}...</p>
+                                                    </td>
+                                                    <td>
+                                                        {revi?.createdAt?.slice(0, -14)}
+                                                    </td>
+                                                    <td>
+                                                        <Link to={`/services/${revi?.serviceid}`} >edit</Link>
+                                                        <button className='btn btn-danger' onClick={() => handleDelete(revi._id)}>delete</button>
+                                                    </td>
+
+
+                                                </tr>
+                                            )
+                                            )
+                                        }
+
+
                                     </tbody>
                                 </table>
                             </div>
                         </div>
                     </div>
 
-                  
+
 
                 </div>
             </section>

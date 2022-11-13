@@ -1,11 +1,14 @@
-import React, { useState } from 'react'
+import React, { useContext, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Footer from '../components/Footer';
+import axios from 'axios';
+
 import Header from '../components/Header';
+import { AuthContext } from '../context/authProvider/AuthProvider';
 const aboutbg = require('./../assets/images/background/image-11.jpg');
 
 const AddService = () => {
-
+    const { user } = useContext(AuthContext);
     const [serviceData, setServiceData] = useState({});
     const [imgPrev, setImgPrev] = useState("")
 
@@ -13,18 +16,43 @@ const AddService = () => {
         const { name, value } = e.target;
         console.log(name)
         if (name == "picture") {
-            const formData = new FormData();
             const file = e.target.files[0];
             console.log(file)
             setImgPrev(file)
-            // setServiceData({ ...serviceData, [name]: value })
+
 
         } else {
             setServiceData({ ...serviceData, [name]: value })
         }
     }
-    // console.log(serviceData)
 
+    // console.log(serviceData)
+    const createService = async (e) => {
+        const formData = new FormData();
+
+        formData.append("avatar", imgPrev);
+
+        axios.post('http://localhost:7000/profile', formData)
+            .then(res => {
+                console.log(res.data?.result?.filename)
+                const token = localStorage.getItem("service-review")
+
+                axios.post('http://localhost:7000/api/v1/service/create', {
+                    ...serviceData, email: user?.email, picture: `http://localhost:7000/${res.data?.result?.filename}`
+                },
+                    {
+                        headers: {
+                            Authorization: 'Bearer ' + token
+                        }
+                    })
+            }).catch(err => {
+
+            })
+
+
+
+
+    }
     return (
         <>
             <Header />
@@ -69,7 +97,7 @@ const AddService = () => {
                                             </div>
                                             {/* Contact Form */}
                                             <div class="contact-form">
-                                                <form id="contact-form">
+                                                <form id="contact-form" >
                                                     <div class="row clearfix">
 
 
@@ -95,7 +123,7 @@ const AddService = () => {
                                                         </div>
 
                                                         <div class="col-md-12 form-group">
-                                                            <button class="theme-btn btn-style-one" type="submit" name="submit-form"><span class="btn-title">Submit</span></button>
+                                                            <button class="theme-btn btn-style-one" type="button" onClick={createService} name="submit-form"><span class="btn-title">Submit</span></button>
                                                         </div>
                                                     </div>
                                                 </form>

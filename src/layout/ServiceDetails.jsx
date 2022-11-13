@@ -1,48 +1,98 @@
-import React from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import Header from '../components/Header'
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { Nav, Tab, } from 'react-bootstrap';
+import ReactStars from "react-rating-stars-component";
+
 // import Footer from '../layout/footer'
 import { CircularProgressbar } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 import ProgressBar from 'react-bootstrap/ProgressBar'
 import Footer from '../components/Footer';
+import axios from 'axios';
+import { AuthContext } from '../context/authProvider/AuthProvider';
+import { toast } from 'react-toastify';
 
 const aboutbg = require('./../assets/images/background/image-11.jpg');
 const helpbg = require('./../assets/images/background/image-18.jpg');
 
-const serviceDetails = () => {
+const ServiceDetails = () => {
+    const { user } = useContext(AuthContext);
+
+    const { id } = useParams();
+    const [services, setServises] = useState({})
+    const [reviewData, setReviewData] = useState({})
+    const [reviewAll, setReviewAll] = useState([
+        { ratings: "1" }
+    ])
+
+    const thirdExample = {
+        size: 40,
+        count: 7,
+        isHalf: false,
+        value: 1,
+        color: "blue",
+        activeColor: "red",
+        onChange: newValue => {
+            setReviewData({ ...reviewData, ratings: newValue });
+        }
+    };
+
+
+
+    useEffect(() => {
+
+        allReviewSS()
+
+
+    }, [id])
+
+    const allReviewSS = async () => {
+        await axios.get(`http://localhost:7000/api/v1/review/reviews/${id}`,)
+            .then(res => {
+                setReviewAll(res.data.review)
+
+
+            }).catch(err => {
+
+            })
+    }
+    useEffect(() => {
+
+        getreviewss()
+
+
+    }, [id])
+
+
+    const getreviewss = async () => {
+
+        axios.get(`http://localhost:7000/api/v1/service/services/${id}`,)
+            .then(res => {
+                setServises(res.data?.service)
+            }).catch(err => {
+
+            })
+    }
+
+    const postReview = async () => {
+        console.log(reviewData)
+        await axios.post(`http://localhost:7000/api/v1/review/create/${id}`, {
+            ...reviewData, email: user?.email
+        })
+            .then(res => {
+                allReviewSS()
+                toast.success("successfully post a review")
+
+            }).catch(err => {
+
+            })
+    }
     return (
         <>
             <Header />
 
-            {/* <!--Search Popup--> */}
-            <div id="search-popup" class="search-popup">
-                <div class="close-search theme-btn"><span class="flaticon-cancel"></span></div>
-                <div class="popup-inner">
-                    <div class="overlay-layer"></div>
-                    <div class="search-form">
-                        <form method="post" action="http://azim.commonsupport.com/Finandox/index.html">
-                            <div class="form-group">
-                                <fieldset>
-                                    <input type="search" class="form-control" name="search-input" value="" placeholder="Search Here" required />
-                                    <input type="submit" value="Search Now!" class="theme-btn" />
-                                </fieldset>
-                            </div>
-                        </form>
-                        <br />
-                        <h3>Recent Search Keywords</h3>
-                        <ul class="recent-searches">
-                            <li><Link to={'/#'}>Finance</Link></li>
-                            <li><Link to={'/#'}>Idea</Link></li>
-                            <li><Link to={'/#'}>Service</Link></li>
-                            <li><Link to={'/#'}>Growth</Link></li>
-                            <li><Link to={'/#'}>Plan</Link></li>
-                        </ul>
-                    </div>
 
-                </div>
-            </div>
 
             {/* <!-- Page Banner Section --> */}
             <section class="page-banner">
@@ -71,7 +121,7 @@ const serviceDetails = () => {
                                 <div class="sidebar-widget-two categories-widget-two">
                                     <div class="widget-content">
                                         <ul>
-                                            <li><Link to={'/services-details'}>Financial Planning <i class="fa fa-angle-right"></i></Link></li>
+
                                             <li class="current"><Link to={'/services-details'}>Software & Research <i class="fa fa-angle-right"></i></Link></li>
                                             <li><Link to={'/services-details'}>Business Services <i class="fa fa-angle-right"></i></Link></li>
                                             <li><Link to={'/services-details'}>Quality Resourcing <i class="fa fa-angle-right"></i></Link></li>
@@ -80,7 +130,7 @@ const serviceDetails = () => {
                                         </ul>
                                     </div>
                                 </div>
-                              
+
                                 <div class="sidebar-widget-two contact-info-widget">
                                     <div class="inner-box" style={{ backgroundImage: "url(" + helpbg + ")" }}>
                                         <h3>Need Help?</h3>
@@ -96,14 +146,14 @@ const serviceDetails = () => {
                         </div>
                         <div class="col-lg-8">
                             <div class="services-details pl-lg-5">
-                                <div class="image-box"><img src={require('../assets/images/resource/service-1.jpg')} alt="" /></div>
+                                <div class="image-box"><img src={services?.picture} alt="" /></div>
                                 <div class="content">
                                     <div class="sec-title">
-                                    
-                                        <h2>We Support Our Clients Five <br /> Working Days.</h2>
-                                        
+
+                                        <h2>{services?.title}</h2>
+
                                     </div>
-                                 
+
                                     <div class="cart-wrapper single-shop-area">
                                         <div class="cart-wrapper ">
                                             <div className="">
@@ -120,18 +170,18 @@ const serviceDetails = () => {
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div class="price"><span>$600</span> <del>$799</del></div>
-                                                <div class="text">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto . Lorem ipsum dolor sit amet, consectetur adipisicing elit,.</div>
+                                                <div class="price"><span>${services?.price}</span> <del>$799</del></div>
+                                                <div class="text">{services?.description}</div>
                                                 <div class="cart-btn">
                                                     <Link to={'/#'} class="theme-btn btn-style-one"><span class="btn-title">Buy Now</span></Link>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                               
+
                                 </div>
-                             
-                              
+
+
                             </div>
                         </div>
                     </div>
@@ -139,7 +189,7 @@ const serviceDetails = () => {
                         <div class="col-md-12">
                             <div class="product-tab-box tabs-box">
                                 <Tab.Container defaultActiveKey="third">
-                                  
+
                                     <Tab.Content className="tabs-content">
                                         <Tab.Pane eventKey="first">
                                             <div class="product-details-content">
@@ -158,60 +208,41 @@ const serviceDetails = () => {
                                         <Tab.Pane eventKey="third">
                                             <div class="review-box-holder">
                                                 <div class="review-area">
-                                                    {/* <!--Start single review box--> */}
-                                                    <div class="column">
-                                                        <div class="single-review-box">
-                                                            <div class="image-holder">
-                                                                <img src={require('../assets/images/shop/review-1.png')} alt="Awesome " />
-                                                            </div>
-                                                            <div class="text-holder">
-                                                                <div class="top">
-                                                                    <div class="name">
-                                                                        <h3>Steven Rich <span>– Jan 17, 2020:</span></h3>
+
+                                                    {
+                                                        reviewAll.map(rev => {
+                                                            return <div class="column">
+                                                                <div class="single-review-box">
+                                                                    <div class="image-holder">
+                                                                        <img src={rev?.userpicture} alt="Awesome " />
                                                                     </div>
-                                                                    <div class="review-box">
-                                                                        <div class="rating">
-                                                                            <i class="fa fa-star"></i>
-                                                                            <i class="fa fa-star"></i>
-                                                                            <i class="fa fa-star"></i>
-                                                                            <i class="fa fa-star"></i>
-                                                                            <i class="fa fa-star"></i>
+                                                                    <div class="text-holder">
+                                                                        <div class="top">
+                                                                            <div class="name">
+                                                                                <h3>{rev?.username}<span>– {rev?.createdAt?.slice(0, -14)}</span></h3>
+                                                                            </div>
+                                                                            <div class="review-box">
+                                                                                <div class="rating">
+                                                                                    {
+
+                                                                                    }
+                                                                                    <i class="fa fa-star"></i>
+                                                                                    <i class="fa fa-star"></i>
+                                                                                    <i class="fa fa-star"></i>
+                                                                                    <i class="fa fa-star"></i>
+                                                                                    <i class="fa fa-star"></i>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="text">
+                                                                            <p>{rev?.description}</p>
                                                                         </div>
                                                                     </div>
                                                                 </div>
-                                                                <div class="text">
-                                                                    <p>Value for money , I use it from long time and it is very useful and good product.</p>
-                                                                </div>
                                                             </div>
-                                                        </div>
-                                                    </div>
-                                                    {/* <!--End single review box--> */}
-                                                    {/* <!--Start single review box--> */}
-                                                    <div class="column">
-                                                        <div class="single-review-box">
-                                                            <div class="image-holder">
-                                                                <img src={require('../assets/images/shop/review-2.png')} alt="Awesome " />
-                                                            </div>
-                                                            <div class="text-holder">
-                                                                <div class="top">
-                                                                    <div class="name">
-                                                                        <h3>William Cobus <span>– Jan 17, 2020:</span></h3>
-                                                                    </div>
-                                                                    <div class="rating">
-                                                                        <i class="fa fa-star"></i>
-                                                                        <i class="fa fa-star"></i>
-                                                                        <i class="fa fa-star"></i>
-                                                                        <i class="fa fa-star"></i>
-                                                                        <i class="fa fa-star"></i>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="text">
-                                                                    <p>We denounce with righteous indignation and dislike men who are so beguiled & demoralized.</p>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    {/* <!--End single review box--> */}
+                                                        })
+                                                    }
+
                                                 </div>
                                             </div>
                                             <div class="review-form">
@@ -219,21 +250,9 @@ const serviceDetails = () => {
                                                     <div class="title">Add Your <span>Comments</span></div>
                                                     <p>Your email address will not be published. Required fields are marked <b>*</b></p>
                                                 </div>
-                                                <form id="review-form" action="#">
-                                                    <div class="row">
-                                                        <div class="col-md-6">
-                                                            <div class="input-box">
-                                                                <p>Name<span>*</span></p>
-                                                                <input type="text" name="fname" placeholder="" required="" />
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-md-6">
-                                                            <div class="input-box">
-                                                                <p>Email<span>*</span></p>
-                                                                <input type="email" name="email" placeholder="" required="" />
-                                                            </div>
-                                                        </div>
-                                                    </div>
+
+                                                <form id="review-form" >
+
                                                     <div class="row">
                                                         <div class="col-md-12">
                                                             <div class="add-rating-box">
@@ -241,13 +260,8 @@ const serviceDetails = () => {
                                                                     <h4>Your Rating</h4>
                                                                 </div>
                                                                 <div class="review-box">
-                                                                    <ul>
-                                                                        <li><i class="fa fa-star"></i></li>
-                                                                        <li><i class="fa fa-star"></i></li>
-                                                                        <li><i class="fa fa-star"></i></li>
-                                                                        <li><i class="fa fa-star"></i></li>
-                                                                        <li><i class="fa fa-star"></i></li>
-                                                                    </ul>
+                                                                    <ReactStars {...thirdExample} />
+
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -256,16 +270,18 @@ const serviceDetails = () => {
                                                         <div class="col-md-12">
                                                             <div class="input-box">
                                                                 <p>Your Review<span>*</span></p>
-                                                                <textarea name="review" placeholder="" required=""></textarea>
+                                                                <textarea onChange={(e) => setReviewData({ ...reviewData, description: e.target.value })} name="review" placeholder="" required=""></textarea>
                                                             </div>
                                                         </div>
                                                     </div>
                                                     <div class="row">
                                                         <div class="col-md-12">
-                                                            <button class="theme-btn btn-style-one" type="submit"><span class="btn-title">Submit</span></button>
+                                                            <button class="theme-btn btn-style-one" type="button" onClick={postReview}><span class="btn-title">Submit</span></button>
                                                         </div>
                                                     </div>
                                                 </form>
+
+
                                             </div>
                                         </Tab.Pane>
                                     </Tab.Content>
@@ -287,7 +303,7 @@ const serviceDetails = () => {
                 </div>
             </div>
 
-          
+
 
 
             <Footer />
@@ -295,4 +311,4 @@ const serviceDetails = () => {
     )
 }
 
-export default serviceDetails
+export default ServiceDetails

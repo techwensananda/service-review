@@ -1,6 +1,7 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useContext, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import ReactSelect from 'react-select'
+import { AuthContext } from '../context/authProvider/AuthProvider'
 import Menu from './Menu'
 const options = [
     { value: 'English', label: 'English' },
@@ -8,7 +9,9 @@ const options = [
     { value: 'Spanish', label: 'Spanish' },
     { value: 'Bengli', label: 'Bengli' }
 ]
-const Header = () => {
+const Header = ({services}) => {
+    const { user, logOut } = useContext(AuthContext);
+
     const headerRef = useRef(null)
     const menuRef = useRef(null)
 
@@ -65,7 +68,11 @@ const Header = () => {
                             </div>
 
                             <div class="top-right">
-                                <Link to={'/login'} class="theme-btn btn-style-two"><span class="btn-title">Login</span></Link>
+                                {
+                                    user?.email ? <Link onClick={logOut} class="theme-btn btn-style-two"><span class="btn-title">Signout</span></Link>
+                                        : <Link to={'/login'} class="theme-btn btn-style-two"><span class="btn-title">Login</span></Link>
+                                }
+
                             </div>
                         </div>
                     </div>
@@ -84,7 +91,7 @@ const Header = () => {
                                 <div class="mobile-nav-toggler"><span class="icon fal fa-bars" onClick={addFunc}></span></div>
 
                                 <nav class="main-menu navbar-expand-md navbar-light">
-                                    <Menu />
+                                    <Menu services={services} />
                                 </nav>
 
 
@@ -123,7 +130,7 @@ const Header = () => {
                     <nav class="menu-box">
                         <div class="nav-logo"><Link to={'/#'}> <h1>Cogenhub</h1></Link></div>
                         <div class="menu-outer">
-                            <Menu />
+                            <Menu  />
                         </div>
                         <div class="social-links">
                             <ul class="clearfix">
